@@ -1,0 +1,53 @@
+# keenetic-netcraze-manager
+
+> Agent skill and CLI to manage Keenetic and Netcraze routers over RCI (the HTTP-JSON API
+> of KeeneticOS). Read router state, manage `object-group fqdn` domain lists, configure
+> DNS-based split tunneling, inspect access policies, and apply CLI commands with an
+> automatic config backup.
+
+## What this is
+
+A Python 3 command-line client (`scripts/kn.py`) plus agent instructions (`SKILL.md`) for
+working with Keenetic and Netcraze routers: KN-1010, KN-1012, KN-1810, KN-1811, KN-2710,
+KN-3810 and other KN-series devices running KeeneticOS 4.x or 5.x.
+
+## Key facts
+
+- Authentication is the web-panel challenge, not HTTP Basic:
+  `POST /auth` with `SHA256(challenge + MD5("login:realm:password"))`.
+- A plain `GET /auth?login=…&password=…` always returns HTTP 401 — a common trap.
+- Commands go through `POST /rci/ {"parse": "<single command>"}`; one line per request.
+- CLI context (for example inside an `object-group`) persists across requests via the cookie.
+- `GET /rci/show/version` returns the firmware version; `show running-config` returns the
+  full configuration as a line array.
+- Domain lists are `object-group fqdn <name>`; routing is
+  `dns-proxy route object-group <name> <interface> auto`.
+- Access policies are `ip policy <name>` with `permit` / `no permit` entries.
+
+## Install
+
+```sh
+mkdir -p ~/.agents/skills
+git clone https://github.com/mkirillka/keenetic-netcraze-manager.git \
+  ~/.agents/skills/keenetic-netcraze-manager
+cd ~/.agents/skills/keenetic-netcraze-manager
+python3 scripts/kn.py init
+python3 scripts/kn.py doctor
+```
+
+## Commands
+
+`init`, `routers`, `doctor`, `version`, `config`, `show`, `groups`, `domains`, `cli`,
+`apply`, `save`, `notes`, `note`, `backups`.
+
+## Constraints
+
+- Python 3.8+, standard library only.
+- No credentials in the repository: passwords come from the OS keyring or environment
+  variables, addresses from a local profile at `~/.config/keenetic-skill/routers.json`.
+- No NDSSO (cloud sign-in) support.
+- Requires the local web panel (HTTP/HTTPS) to be reachable on the LAN.
+
+## License
+
+MIT.

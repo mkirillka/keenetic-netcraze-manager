@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# Personal data of the keenetic skill: router profile, notes, config dumps.
+# They normally live in ~/.config/keenetic-skill, but ignore them here too in case
+# someone copies them into the skill folder by mistake.
+routers.json
+**/routers.json
+local-notes.md
+**/local-notes.md
+backups/
+**/backups/
+*running-config*
+*.cli
+.secrets
