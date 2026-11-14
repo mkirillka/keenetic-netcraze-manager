@@ -31,7 +31,7 @@ import time
 import urllib.error
 import urllib.request
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 # ---------------------------------------------------------------- local data
 
@@ -641,9 +641,12 @@ def cmd_init(rci, args):
     routers = profile["routers"]
 
     password = None
+    asked = False
     if getattr(args, "password_stdin", False):
+        asked = True
         password = sys.stdin.readline().strip()
     elif interactive:
+        asked = True
         password = getpass.getpass(f"Password for {login}@{host} (input is hidden): ")
 
     stored = False
@@ -670,7 +673,7 @@ def cmd_init(rci, args):
     elif not keychain:
         print("Password: not stored (keychain entry name is empty).")
         print("          Use KEENETIC_PASSWORD or KEENETIC_PASSWORD_FILE.")
-    elif password is not None:
+    elif asked:
         print("Password: could not store it in the keychain (no security/secret-tool).")
         print("          Use KEENETIC_PASSWORD or KEENETIC_PASSWORD_FILE.")
     else:

@@ -1,5 +1,7 @@
 # Keenetic / Netcraze Manager — an agent skill for routers
 
+[![tests](https://github.com/mkirillka/keenetic-netcraze-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/mkirillka/keenetic-netcraze-manager/actions/workflows/tests.yml)
+
 Talk to a **Keenetic** or **Netcraze** router from the command line or from an AI coding
 agent. Read what is configured, manage `object-group fqdn` domain lists, wire them into
 DNS-based split tunneling, inspect access policies, and apply CLI commands with an automatic
@@ -109,6 +111,16 @@ goes into the OS keyring — macOS Keychain or Linux `secret-tool` — and the p
 
 Password lookup order at runtime: `KEENETIC_PASSWORD` → `KEENETIC_PASSWORD_FILE` → OS keyring
 → `--ask-password`.
+
+The wizard can only *write* to the keyring on macOS (`security`). On Linux the wizard stores the
+profile and tells you how to add the password yourself — read access works through `secret-tool`:
+
+```sh
+secret-tool store --label="keenetic-home" service keenetic-home
+export KEENETIC_PASSWORD=…        # or a 600 file via KEENETIC_PASSWORD_FILE
+```
+
+On Windows use `KEENETIC_PASSWORD` or `KEENETIC_PASSWORD_FILE`.
 
 Check it end to end:
 
@@ -230,12 +242,15 @@ someone copies them into the skill folder by mistake.
 ## Tests
 
 ```sh
-python3 tests/test_kn.py        # 44 offline checks, no network, no router
+python3 tests/test_kn.py        # 47 offline checks, no network, no router
 ```
 
 Covered: `show running-config` parsing (groups, routes, policies), non-ASCII decoding, secret
-redaction, the dangerous-command filter, profile resolution, password source priority, file
-permissions, and a guard that fails if personal data appears in the skill files.
+redaction, the dangerous-command filter, profile resolution, password source priority, the `init`
+wizard with and without a working keyring, file permissions, version sync between `kn.py` and
+`SKILL.md`, and a guard that fails if personal data appears in the skill files.
+
+CI runs the same suite on Python 3.8, 3.11 and 3.13 for every push and pull request.
 
 ## Layout
 

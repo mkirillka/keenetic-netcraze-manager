@@ -9,6 +9,7 @@ import argparse
 import io
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -294,7 +295,9 @@ class TestInit(TempHomeMixin, unittest.TestCase):
         old_stdin, old_stdout = sys.stdin, sys.stdout
         sys.stdin, sys.stdout = io.StringIO(stdin_text), io.StringIO()
         try:
-            return kn.main(["init", "--no-test"] + argv)
+            code = kn.main(["init", "--no-test"] + argv)
+            self.last_output = sys.stdout.getvalue()
+            return code
         finally:
             sys.stdin, sys.stdout = old_stdin, old_stdout
 
@@ -333,6 +336,20 @@ class TestInit(TempHomeMixin, unittest.TestCase):
         self._run_init(["--name", "second", "--password-stdin"], "secret\n")
         self.assertEqual(kn.load_profile()["default"], "first")
 
+    def test_init_survives_failed_keyring_store(self):
+        """Regression: a missing keyring used to raise UnboundLocalError after `del password`."""
+        kn.keychain_store = lambda service, account, password: False
+        code = self._run_init(["--name", "nokey", "--password-stdin"], "secret\n")
+        self.assertEqual(code, 0)
+        self.assertIn("could not store it in the keychain", self.last_output)
+        self.assertEqual(kn.load_profile()["routers"]["nokey"]["host"], "192.168.1.1")
+
+    def test_init_without_password_at_all(self):
+        """Non-interactive init with no --password-stdin must not crash either."""
+        code = self._run_init(["--name", "nopw"])
+        self.assertEqual(code, 0)
+        self.assertIn("nopw", kn.load_profile()["routers"])
+
 
 class TestMisc(unittest.TestCase):
     def test_json_of_garbage_is_none(self):
@@ -356,6 +373,15 @@ class TestMisc(unittest.TestCase):
         client = kn.Rci({"host": "127.0.0.1", "port": 1, "name": "t"})
         with self.assertRaises(kn.RciError):
             client.parse("line1\nline2")
+
+    def test_version_matches_skill_frontmatter(self):
+        """The version lives in kn.__version__ and in SKILL.md — they must not drift."""
+        root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+        with open(os.path.join(root, "SKILL.md"), encoding="utf-8") as fh:
+            front = fh.read()
+        match = re.search(r"^\s*version:\s*(\S+)\s*$", front, re.MULTILINE)
+        self.assertIsNotNone(match, "SKILL.md has no metadata.version")
+        self.assertEqual(match.group(1), kn.__version__)
 
     def test_no_personal_data_in_skill_files(self):
         """Personal hosts and keyring names must stay out of the published skill."""

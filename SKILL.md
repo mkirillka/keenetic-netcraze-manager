@@ -3,8 +3,8 @@ name: keenetic-netcraze-manager
 description: Manage Keenetic and Netcraze routers (KN-series, KeeneticOS 4.x/5.x) over RCI, the HTTP-JSON API behind the web panel. Reads KeeneticOS version, running config, interfaces, routes and device lists; shows object-group fqdn domain lists with their dns-proxy routes; edits domain lists and access policies; applies CLI commands with an automatic config backup. Use when a task mentions Keenetic, Netcraze, «кинетик», KeeneticOS, NDMS, ndmc, RCI, KN-1010, KN-1012, KN-1810, KN-1811, KN-2710, KN-3810, Hopper, Giga, Skipper, Speedster, Hero, Peak, Extra, Air, Start, 4G/5G router, home router, or asks to read router settings, list domain groups, add a domain to a domain list, set up split tunneling by domains, dns-proxy route object-group, object-group fqdn, ip policy, access policies, «what is on the router», «which domains are in the list», «router panel does not open», or any read/change of Keenetic router configuration over RCI.
 license: MIT
 metadata:
-  version: 2.0.0
-  updated: 2026-11-13
+  version: 2.0.1
+  updated: 2026-11-14
   type: oneshot
 ---
 
